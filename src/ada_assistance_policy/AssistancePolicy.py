@@ -15,6 +15,10 @@ class AssistancePolicy:
     #self.user_input_mapper = UserInputMapper()
 
 
+  # NEW
+  def clone(self):
+     return AssistancePolicy(list(self.goals))
+
   def update(self, robot_state, user_action):
     self.robot_state = robot_state
     #user action corresponds to the effect of direct teleoperation on the robot

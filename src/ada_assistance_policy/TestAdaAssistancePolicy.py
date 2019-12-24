@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from AdaHandler import *
-from HydraListener import *
 import rospy
 import IPython
 

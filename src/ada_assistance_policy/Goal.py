@@ -36,7 +36,8 @@ class Goal:
         trans_dist = np.linalg.norm(pos_diff)
 
         quat_dist = QuaternionDistance(transmethods.quaternion_from_matrix(end_effector_trans), quat)
-
+        print "trans_dist: " + str(trans_dist)
+        print "quat_dist: " + str(quat_dist)
         if (trans_dist < 0.01) and (quat_dist < np.pi/48):
           return True
       # if none of the poses in target_poses returned, then we are not at goal

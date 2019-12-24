@@ -17,9 +17,15 @@ class AdaAssistancePolicy:
 
     self.goals = goals
 
+  def clone(self):
+    ret = AdaAssistancePolicy(list(self.goals))
+    ret.assist_policy = self.assist_policy.clone()
+    return ret
+
   def update(self, robot_state, user_action):
     self.assist_policy.update(robot_state, user_action)
-    values,q_values = self.assist_policy.get_values()
+    values,q_values = self.assist_policy.get_values()   
+    
     self.goal_predictor.update_distribution(values, q_values)
     self.robot_state = robot_state
 
