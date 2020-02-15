@@ -33,7 +33,7 @@ class UserBot:
 
         # add colored noise to the command
         usr_cmnd = pos_diff;
-        usr_cmnd[0:2] *= -1.
+        #usr_cmnd[0:2] *= -1.
         #usr_cmnd += self.noise_pwr*np.linalg.norm(usr_cmnd)*np.random.randn(self.usr_cmd_dim)  
         #usr_cmnd += self.correl_coeff.dot(self.white_noise_hist)
         #self.white_noise_hist = np.vstack([usr_cmnd, self.white_noise_hist[0:-1,:]])

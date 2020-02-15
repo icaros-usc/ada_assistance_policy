@@ -3,7 +3,7 @@ from AdaAssistancePolicy import *
 from UserBot import *
 import AssistancePolicyVisualizationTools as vistools
 #from GoalPredictor import *
-
+from ada_teleoperation.input_handlers.UserInputListener import *
 from DataRecordingUtils import TrajectoryData
 
 import numpy as np
@@ -132,12 +132,19 @@ class AdaHandler:
           user_goal = self.user_bot.goal_num
           min_val_target_pose = self.robot_policy.assist_policy.goal_assist_policies[user_goal].get_min_value_pose()
           user_input_velocity = self.user_bot.get_usr_cmd(ee_trans, goal_pose=min_val_target_pose)
-          user_input_all = UserInputData(user_input_velocity)
+          print "velocity is: "+str(user_input_velocity)
+          user_input_all = UserInputData(user_input_velocity, button_changes = [0,0], buttons_held = [0,0])
+          print "user_input is: "+str(user_input_all)
           #user_input_all.switch_assistance_val
           if self.goals[user_goal].at_goal(ee_trans):
             user_input_all.close_hand_velocity = 1.0
+            print "Reached goal!"
+            return
           else:
             user_input_all.close_hand_velocity = 0.
+
+          #from IPython import embed
+          #embed()
         else:
           user_input_all = self.ada_teleop.joystick_listener.get_most_recent_cmd()
           #print user_input_all
@@ -149,50 +156,50 @@ class AdaHandler:
         if not direct_teleop_only and user_input_all.button_changes[1] == 1:
           use_assistance = not use_assistance
 
-        qvalues_per_input = []
-        goal_indx = 0
-        for xx in np.arange(-0.2,0.21,0.05):
-          for yy in np.arange(-0.2,0.21,0.05):
-            for mm in [0,1,2]: 
-              user_input_all.axes = np.array([0.,0.,0.])
-              user_input_all.axes[0] = xx
-              user_input_all.axes[1] = yy 
-              #print user_input_all
-              #if mm == 1: 
-              #  user_input_all.button_changes[0] = -1
-              #  user_input_all.buttons_held[0] = 0
-              #  user_input_all.axes = np.array([0.,0.,0.])
-              #else: 
-              #  user_input_all.button_changes[0] = 0
-              #  user_input_all.buttons_held[0] = 0
-              new_state = copy.deepcopy(robot_state)
-              new_state.mode = mm 
+        # qvalues_per_input = []
+        # goal_indx = 0
+        # for xx in np.arange(-0.2,0.21,0.025):
+        #   for yy in np.arange(-0.2,0.21,0.025):
+        #     #for mm in [0,1,2]: 
+        #       user_input_all.axes = np.array([0.,0.,0.])
+        #       user_input_all.axes[0] = xx
+        #       user_input_all.axes[1] = yy 
+        #       #print user_input_all
+        #       #if mm == 1: 
+        #       #  user_input_all.button_changes[0] = -1
+        #       #  user_input_all.buttons_held[0] = 0
+        #       #  user_input_all.axes = np.array([0.,0.,0.])
+        #       #else: 
+        #       #  user_input_all.button_changes[0] = 0
+        #       #  user_input_all.buttons_held[0] = 0
+        #       new_state = copy.deepcopy(robot_state)
+        #      # new_state.mode = mm 
 
-              new_action= self.user_input_mapper.input_to_action(user_input_all, new_state)
-              cp_action = copy.deepcopy(new_action)
+        #       new_action= self.user_input_mapper.input_to_action(user_input_all, new_state)
+        #       cp_action = copy.deepcopy(new_action)
 
-              policy = self.robot_policy.assist_policy.clone()
-              policy.update(robot_state, cp_action)
-              values,q_values = policy.get_values()   
-              qvalues_per_input.append((q_values[goal_indx], cp_action,new_state))
+        #       policy = self.robot_policy.assist_policy.clone()
+        #       policy.update(robot_state, cp_action)
+        #       values,q_values = policy.get_values()   
+        #       qvalues_per_input.append((q_values[goal_indx], cp_action,new_state))
 
-        q_val, action,robot_state = min(qvalues_per_input, key=lambda x: x[0])
-        print(action)
-        print(robot_state.mode)
-        if robot_state.mode == 2:
-          from IPython import embed
-          embed()
-        print(q_val)
-        #if q_val < 0.05:
-        #  from IPython import embed
-        #  embed()
-        for ii in range(0,len(self.goals)):
-          if self.goals[ii].at_goal(robot_state.ee_trans):
-            finish_trial_func()
+        # q_val, action,robot_state = min(qvalues_per_input, key=lambda x: x[1])
+        # print(action)
+        # print(robot_state.mode)
+        # #if robot_state.mode == 2:
+        # #  from IPython import embed
+        # #  embed()
+        # print(q_val)
+        # #if q_val < 0.05:
+        # #  from IPython import embed
+        # #  embed()
+        # for ii in range(0,len(self.goals)):
+        #   if self.goals[ii].at_goal(robot_state.ee_trans):
+        #     #break
+        #     finish_trial_func()
 
 
-   
-        self.robot_policy.update(robot_state, action)
+        self.robot_policy.update(robot_state, direct_teleop_action)
         if use_assistance and not direct_teleop_only:
           #action = self.user_input_mapper.input_to_action(user_input_all, robot_state)
           if blend_only:
